@@ -71,35 +71,35 @@ const CalendarView = ({ expenses }: CalendarViewProps) => {
     <div className="flex flex-col gap-8 animate-fade-in relative z-10 w-full max-w-7xl mx-auto">
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 items-start">
         {/* Left Column: Calendar Grid */}
-        <div className="xl:col-span-2 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-[2rem] shadow-sm border border-gray-100 dark:border-slate-700/50 p-6 sm:p-8">
+        <div className="xl:col-span-2 vm-card p-6 sm:p-8">
           <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
             <div className="flex items-center gap-4">
-              <div className="p-3.5 bg-indigo-50 dark:bg-indigo-900/40 rounded-2xl text-indigo-600 dark:text-indigo-400">
+              <div className="p-3.5 bg-emerald-500/20 rounded-2xl text-emerald-400">
                 <CalendarIcon className="h-6 w-6" />
               </div>
               <div>
-                <h2 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white tracking-tight capitalize">
+                <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight capitalize">
                   {format(currentMonth, 'MMMM yyyy')}
                 </h2>
-                <p className="text-sm font-semibold text-gray-400 dark:text-gray-500">Track your daily spending patterns</p>
+                <p className="text-sm font-semibold text-gray-400">Track your daily spending patterns</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 bg-gray-50 dark:bg-slate-900/50 p-1.5 rounded-2xl border border-gray-200 dark:border-slate-700">
+            <div className="flex items-center gap-2 bg-[#1A1A25] p-1.5 rounded-2xl border border-[#2A2A35]">
               <button
                 onClick={prevMonth}
-                className="p-2.5 hover:bg-white dark:hover:bg-slate-800 rounded-xl transition-all text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400"
+                className="p-2.5 hover:bg-[#2A2A35] rounded-xl transition-all text-gray-400 hover:text-emerald-400"
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
               <button
                 onClick={goToToday}
-                className="px-5 py-2.5 text-sm font-black text-gray-600 dark:text-gray-400 hover:bg-white dark:hover:bg-slate-800 rounded-xl transition-all"
+                className="px-5 py-2.5 text-sm font-black text-gray-400 hover:bg-[#2A2A35] hover:text-white rounded-xl transition-all"
               >
                 Today
               </button>
               <button
                 onClick={nextMonth}
-                className="p-2.5 hover:bg-white dark:hover:bg-slate-800 rounded-xl transition-all text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400"
+                className="p-2.5 hover:bg-[#2A2A35] rounded-xl transition-all text-gray-400 hover:text-emerald-400"
               >
                 <ChevronRight className="h-5 w-5" />
               </button>
@@ -108,7 +108,7 @@ const CalendarView = ({ expenses }: CalendarViewProps) => {
 
           <div className="grid grid-cols-7 gap-1 sm:gap-4 mb-4">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-              <div key={day} className="text-center py-2 text-[10px] sm:text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em]">
+              <div key={day} className="text-center py-2 text-[10px] sm:text-xs font-black text-gray-500 uppercase tracking-[0.2em]">
                 {day}
               </div>
             ))}
@@ -128,13 +128,13 @@ const CalendarView = ({ expenses }: CalendarViewProps) => {
                   key={dateStr}
                   onClick={() => isCurrentMonth && setSelectedDate(day)}
                   className={cn(
-                    "relative aspect-square sm:aspect-[1/1] p-3 rounded-[1.5rem] transition-all flex flex-col items-center sm:items-start group border-2",
+                    "relative aspect-square sm:aspect-[1/1] p-3 rounded-[1.5rem] transition-all flex flex-col items-center sm:items-start group border",
                     !isCurrentMonth ? "opacity-20 cursor-default pointer-events-none" : "hover:scale-[1.02] cursor-pointer active:scale-95",
                     isSelected 
-                      ? "bg-indigo-600 border-indigo-500 shadow-xl shadow-indigo-500/30 text-white z-20" 
+                      ? "bg-emerald-600 border-emerald-500 shadow-lg shadow-emerald-500/20 text-white z-20" 
                       : isToday 
-                      ? "bg-white dark:bg-slate-800 border-indigo-200 dark:border-indigo-900/50 text-indigo-600 dark:text-indigo-400"
-                      : "bg-gray-50/50 dark:bg-slate-900/30 border-transparent hover:border-gray-200 dark:hover:border-slate-700 text-gray-700 dark:text-gray-300"
+                      ? "bg-[#2A2A35] border-[#2A2A35] text-emerald-400"
+                      : "bg-transparent hover:bg-[#2A2A35] border-transparent text-gray-400 hover:text-gray-200"
                   )}
                 >
                   <span className={cn(
@@ -148,7 +148,7 @@ const CalendarView = ({ expenses }: CalendarViewProps) => {
                     <div className="mt-auto w-full flex flex-col items-center sm:items-start group-hover:translate-x-1 transition-transform">
                       <div className={cn(
                         "hidden sm:block text-[11px] font-black tracking-tight truncate",
-                        isSelected ? "text-indigo-100" : "text-gray-500 dark:text-gray-400"
+                        isSelected ? "text-emerald-100" : "text-gray-500"
                       )}>
                         {formatCurrency(dayTotal)}
                       </div>
@@ -156,13 +156,13 @@ const CalendarView = ({ expenses }: CalendarViewProps) => {
                         {dayExpenses.slice(0, 3).map((_, i) => (
                           <div key={i} className={cn(
                             "w-1 h-1 rounded-full",
-                            isSelected ? "bg-white/60" : "bg-indigo-500 dark:bg-indigo-400"
+                            isSelected ? "bg-emerald-200" : "bg-emerald-500"
                           )} />
                         ))}
                         {dayExpenses.length > 3 && (
                           <div className={cn(
                             "w-1 h-1 rounded-full opacity-50",
-                            isSelected ? "bg-white/40" : "bg-indigo-300 dark:bg-indigo-900"
+                            isSelected ? "bg-emerald-200/50" : "bg-emerald-500/50"
                           )} />
                         )}
                       </div>
@@ -175,22 +175,22 @@ const CalendarView = ({ expenses }: CalendarViewProps) => {
         </div>
 
         {/* Right Column: Daily Details */}
-        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-[2rem] shadow-sm border border-gray-100 dark:border-slate-700/50 p-6 sm:p-8 flex flex-col min-h-[500px] xl:min-h-full">
+        <div className="vm-card flex flex-col min-h-[500px] xl:min-h-full">
           <div className="mb-8 p-1">
-            <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Day Summary</h3>
-            <p className="text-gray-500 dark:text-gray-400 font-bold mt-1.5 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-indigo-500" />
+            <h3 className="text-2xl font-black text-white tracking-tight">Day Summary</h3>
+            <p className="text-gray-400 font-bold mt-1.5 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
               {selectedDate ? format(selectedDate, 'MMMM d, yyyy') : 'Select a date'}
             </p>
           </div>
 
           {selectedDate && selectedDayExpenses.length > 0 ? (
             <div className="flex-grow flex flex-col h-full overflow-hidden">
-              <div className="bg-gradient-to-br from-gray-900 to-slate-800 dark:from-slate-700 dark:to-slate-900 rounded-[1.5rem] p-6 text-white shadow-2xl shadow-gray-500/10 mb-8 relative overflow-hidden group">
+              <div className="bg-[#1A1A25] border border-[#2A2A35] rounded-[1.5rem] p-6 text-white mb-8 relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-4 opacity-5 transform translate-x-1/4 -translate-y-1/4 group-hover:scale-110 transition-transform duration-700">
                   <Wallet className="h-32 w-32" />
                 </div>
-                <p className="text-gray-400 dark:text-gray-300 text-[10px] font-black uppercase tracking-[0.2em] relative z-10">Total Expenditure</p>
+                <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.2em] relative z-10">Total Expenditure</p>
                 <h4 className="text-4xl font-black mt-2 tracking-tighter relative z-10">{formatCurrency(dailyTotal)}</h4>
               </div>
 
@@ -198,20 +198,20 @@ const CalendarView = ({ expenses }: CalendarViewProps) => {
                 {selectedDayExpenses.map((expense) => (
                   <div 
                     key={expense._id} 
-                    className="flex items-center justify-between p-5 bg-white dark:bg-slate-900/50 rounded-[1.25rem] border border-gray-100 dark:border-slate-700/50 group hover:border-indigo-300 dark:hover:border-indigo-900/50 hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-300"
+                    className="flex items-center justify-between p-5 bg-[#1A1A25] border border-[#2A2A35] rounded-xl group hover:border-emerald-500/50 transition-colors"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
+                      <div className="p-3 bg-emerald-500/20 rounded-xl text-emerald-400 group-hover:scale-110 transition-transform">
                         <Wallet className="h-5 w-5" />
                       </div>
                       <div>
-                        <p className="font-black text-gray-900 dark:text-white leading-none">{expense.title}</p>
-                        <span className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-wider mt-1.5 inline-block px-2 py-0.5 bg-gray-100 dark:bg-slate-800 rounded-md">
+                        <p className="font-black text-white leading-none">{expense.title}</p>
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider mt-1.5 inline-block px-2 py-0.5 bg-[#2A2A35] rounded-md">
                           {expense.category}
                         </span>
                       </div>
                     </div>
-                    <p className="font-black text-gray-900 dark:text-white text-lg tracking-tight">
+                    <p className="font-black text-white text-lg tracking-tight">
                       {formatCurrency(expense.amount)}
                     </p>
                   </div>
@@ -219,15 +219,15 @@ const CalendarView = ({ expenses }: CalendarViewProps) => {
               </div>
             </div>
           ) : (
-            <div className="flex-grow flex flex-col items-center justify-center text-center p-8 border-2 border-dashed border-gray-100 dark:border-slate-800 rounded-[2rem] mt-auto">
-              <div className="p-6 bg-gray-50/50 dark:bg-slate-900/50 rounded-full mb-6 relative">
-                <div className="absolute inset-0 bg-indigo-500/5 rounded-full animate-ping" />
-                <CalendarIcon className="h-10 w-10 text-gray-300 dark:text-gray-600 relative z-10" />
+            <div className="flex-grow flex flex-col items-center justify-center text-center p-8 border-2 border-dashed border-[#2A2A35] rounded-[2rem] mt-auto">
+              <div className="p-6 bg-[#1A1A25] rounded-full mb-6 relative">
+                <div className="absolute inset-0 bg-emerald-500/10 rounded-full animate-ping" />
+                <CalendarIcon className="h-10 w-10 text-emerald-400 relative z-10" />
               </div>
-              <p className="text-gray-900 dark:text-white font-black text-lg">
+              <p className="text-white font-black text-lg">
                 {selectedDate ? 'No Spending Found' : 'Select a date'}
               </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 font-bold mt-2 max-w-[200px] leading-relaxed">
+              <p className="text-sm text-gray-400 font-bold mt-2 max-w-[200px] leading-relaxed">
                 {selectedDate 
                   ? 'Your financial record is clean for this day! No expenses detected.' 
                   : 'Tap any active date on the left grid to see detailed financial breakdown.'}
