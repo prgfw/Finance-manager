@@ -8,7 +8,7 @@ export interface Currency {
   rate: number; // Rate relative to USD (Base)
 }
 
-export const currencies: Currency[] = [
+export const defaultCurrencies: Currency[] = [
   { code: 'USD', symbol: '$', name: 'US Dollar', rate: 1 },
   { code: 'INR', symbol: '₹', name: 'Indian Rupee', rate: 83.5 },
   { code: 'EUR', symbol: '€', name: 'Euro', rate: 0.92 },
@@ -19,19 +19,22 @@ export const currencies: Currency[] = [
 ];
 
 interface CurrencyState {
+  currencies: Currency[];
   selectedCurrency: Currency;
   setCurrency: (code: string) => void;
   convert: (amount: number) => number;
   toBase: (amount: number) => number;
   format: (amount: number) => string;
+  fetchRates: () => Promise<void>;
 }
 
 export const useCurrencyStore = create<CurrencyState>()(
   persist(
     (set, get) => ({
-      selectedCurrency: currencies[0], // Default to USD
+      currencies: defaultCurrencies,
+      selectedCurrency: defaultCurrencies[0], // Default to USD
       setCurrency: (code) => {
-        const currency = currencies.find(c => c.code === code) || currencies[0];
+        const currency = get().currencies.find(c => c.code === code) || defaultCurrencies[0];
         set({ selectedCurrency: currency });
       },
       convert: (amount) => {
@@ -52,6 +55,25 @@ export const useCurrencyStore = create<CurrencyState>()(
           currencyDisplay: 'symbol',
         }).format(convertedAmount);
       },
+      fetchRates: async () => {
+        try {
+          const res = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+          const data = await res.json();
+          const rates = data.rates;
+          
+          const updatedCurrencies = get().currencies.map(c => ({
+            ...c,
+            rate: rates[c.code] || c.rate
+          }));
+          
+          set({ 
+            currencies: updatedCurrencies,
+            selectedCurrency: updatedCurrencies.find(c => c.code === get().selectedCurrency.code) || updatedCurrencies[0]
+          });
+        } catch (error) {
+          console.error("Failed to fetch live exchange rates", error);
+        }
+      }
     }),
     {
       name: 'currency-storage',

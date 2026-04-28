@@ -1,9 +1,10 @@
 import { create } from 'zustand';
 
-interface User {
+export interface User {
   _id: string;
   name: string;
   email: string;
+  baseCurrency?: string;
 }
 
 interface AuthState {

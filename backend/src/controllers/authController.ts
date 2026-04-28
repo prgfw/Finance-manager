@@ -48,6 +48,7 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
         _id: user.id,
         name: user.name,
         email: user.email,
+        baseCurrency: user.baseCurrency,
         token: generateToken(user.id),
       });
     } else {
@@ -74,6 +75,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
         _id: user.id,
         name: user.name,
         email: user.email,
+        baseCurrency: user.baseCurrency,
         token: generateToken(user.id),
       });
     } else {

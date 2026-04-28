@@ -5,15 +5,23 @@
   "description": "RESTful API for Personal Finance Manager — handles authentication, transactions, and analytics",
   "author": "Your Name",
   "license": "MIT",
-  "keywords": ["finance", "expense-tracker", "mern", "express", "typescript", "mongodb"],
+  "keywords": [
+    "finance",
+    "expense-tracker",
+    "mern",
+    "express",
+    "typescript",
+    "mongodb"
+  ],
   "scripts": {
     "start": "node dist/index.js",
-    "dev": "nodemon src/index.ts",
+    "dev": "nodemon --watch src --ext ts --exec ts-node src/index.ts",
     "build": "tsc",
     "lint": "echo \"Lint check passed\"",
     "test": "echo \"Tests: auth and expense endpoints coverage pending\""
   },
   "dependencies": {
+    "axios": "^1.15.2",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",

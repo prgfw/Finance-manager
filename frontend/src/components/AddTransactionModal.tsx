@@ -2,7 +2,9 @@ import { useState, type FormEvent } from 'react';
 import api from '../utils/api';
 import { useExpenseStore } from '../store/expenseStore';
 import { useCurrencyStore } from '../store/currencyStore';
+import { useBudgetStore } from '../store/budgetStore';
 import { X } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const EXPENSE_CATEGORIES = ['Food', 'Transport', 'Utilities', 'Entertainment', 'Shopping', 'Health', 'Other'];
 const INCOME_CATEGORIES = ['Salary', 'Bank Balance', 'Freelance', 'Business', 'Bonus', 'Other'];
@@ -14,8 +16,9 @@ interface AddTransactionModalProps {
 }
 
 const AddTransactionModal = ({ isOpen, onClose, initialType = 'expense' }: AddTransactionModalProps) => {
-  const { addExpense } = useExpenseStore();
+  const { expenses, addExpense } = useExpenseStore();
   const { selectedCurrency, toBase } = useCurrencyStore();
+  const budgets = useBudgetStore(state => state.budgets);
 
   const [type, setType] = useState<'income' | 'expense'>(initialType);
   const [title, setTitle] = useState('');
@@ -42,10 +45,29 @@ const AddTransactionModal = ({ isOpen, onClose, initialType = 'expense' }: AddTr
       const amountInUSD = toBase(Number(amount));
       const { data } = await api.post('/expenses', { type, title, amount: amountInUSD, category, date });
       addExpense(data);
+
+      if (type === 'expense') {
+        const budget = budgets.find(b => b.category === category);
+        if (budget) {
+          const currentSpent = expenses
+            .filter(exp => exp.type === 'expense' && exp.category === category)
+            .reduce((sum, exp) => sum + exp.amount, 0);
+          
+          if (currentSpent + amountInUSD > budget.monthlyLimit) {
+            toast.error(`Alert: You have exceeded your budget limit for ${category}!`, {
+              icon: '⚠️',
+              duration: 5000,
+            });
+          }
+        }
+      }
+
+      toast.success('Transaction added');
       onClose();
       // Reset form
       setTitle(''); setAmount(''); setDate(new Date().toISOString().split('T')[0]);
     } catch (error) {
+      toast.error('Failed to add transaction');
       console.error('Failed to add transaction', error);
     } finally {
       setLoading(false);

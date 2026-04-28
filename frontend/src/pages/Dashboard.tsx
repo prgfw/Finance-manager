@@ -2,8 +2,11 @@ import { useEffect, useState, useMemo } from 'react';
 import api from '../utils/api';
 import { useExpenseStore, type Expense } from '../store/expenseStore';
 import { useCurrencyStore } from '../store/currencyStore';
-import { TrendingUp, TrendingDown, Wallet, Receipt, Plus, Flame, Target } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, Receipt, Plus, Flame, Target, AlertCircle } from 'lucide-react';
 import { format, subDays, parseISO } from 'date-fns';
+import { useBudgetStore } from '../store/budgetStore';
+import { useLoanStore } from '../store/loanStore';
+import { useAuthStore } from '../store/authStore';
 import LineChart from '../components/charts/LineChart';
 import PieChart from '../components/charts/PieChart';
 import BarChart from '../components/charts/BarChart';
@@ -21,9 +24,12 @@ interface DashboardData {
 const Dashboard = () => {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
-  // Removed unused 'user' variable to pass strict TS linting
+
   const { expenses, setExpenses } = useExpenseStore();
   const { format: formatCurrency, convert } = useCurrencyStore();
+  const { budgets, setBudgets } = useBudgetStore();
+  const { loans, setLoans } = useLoanStore();
+  const { user } = useAuthStore();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<'income' | 'expense'>('income');
@@ -33,14 +39,23 @@ const Dashboard = () => {
     setIsModalOpen(true);
   };
 
-  // Refresh analytics after adding a new transaction
+
   const refreshData = async () => {
-    const [analyticsRes, expensesRes] = await Promise.all([
-      api.get('/analytics'),
-      api.get('/expenses'),
-    ]);
-    setData(analyticsRes.data);
-    setExpenses(expensesRes.data);
+    try {
+      const [analyticsRes, expensesRes, budgetsRes, loansRes] = await Promise.allSettled([
+        api.get('/analytics'),
+        api.get('/expenses'),
+        api.get('/budgets'),
+        api.get('/loans'),
+      ]);
+
+      if (analyticsRes.status === 'fulfilled') setData(analyticsRes.value.data);
+      if (expensesRes.status === 'fulfilled') setExpenses(expensesRes.value.data);
+      if (budgetsRes.status === 'fulfilled') setBudgets(budgetsRes.value.data);
+      if (loansRes.status === 'fulfilled') setLoans(loansRes.value.data);
+    } catch (error) {
+      console.error('Failed to fetch dashboard data', error);
+    }
   };
 
   useEffect(() => {
@@ -56,7 +71,7 @@ const Dashboard = () => {
     fetchData();
   }, [setExpenses]);
 
-  // --- Chart data ---
+
   const lineChartData = useMemo(() => {
     const last12Days = Array.from({ length: 12 }, (_, i) => {
       const d = subDays(new Date(), 11 - i);
@@ -101,12 +116,36 @@ const Dashboard = () => {
   return (
     <div>
       {/* Welcome Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-black text-white mb-1">Welcome back.</h1>
-        <h2 className="text-3xl font-black" style={{ color: '#22C55E' }}>Manage your finances.</h2>
-        <p className="mt-2 text-sm" style={{ color: '#6B7280', maxWidth: 480 }}>
-          Your income, expenses, and balance tracked in real time. Add income to get started.
-        </p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl font-black text-white mb-1">
+            Hello {user?.name ? user.name.split(' ')[0] : 'there'}!
+          </h1>
+          <h2 className="text-3xl font-black" style={{ color: '#22C55E' }}>Manage your finances.</h2>
+          <p className="mt-2 text-sm" style={{ color: '#6B7280', maxWidth: 480 }}>
+            Your income, expenses, and balance tracked in real time. Add income to get started.
+          </p>
+        </div>
+        <button
+          onClick={() => {
+            import('../utils/export').then(module => {
+              try {
+                module.exportExpensesToCSV(expenses);
+                import('react-hot-toast').then(toast => toast.default.success('Export downloaded!'));
+              } catch (e: any) {
+                console.error(e);
+                import('react-hot-toast').then(toast => toast.default.error('Export failed: ' + e.message));
+              }
+            }).catch(e => {
+              console.error(e);
+              import('react-hot-toast').then(toast => toast.default.error('Failed to load export module'));
+            });
+          }}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all hover:opacity-80 border"
+          style={{ background: '#1c1c24', color: '#fff', borderColor: '#2A2A35' }}
+        >
+          Export CSV
+        </button>
       </div>
 
       {/* Stat Cards Row */}
@@ -282,6 +321,52 @@ const Dashboard = () => {
               <PieChart data={pieChartData} />
             </div>
           </div>
+
+          {/* Budget Progress (Smart Alerts) */}
+          <div className="vm-card">
+            <h3 className="text-white font-black text-sm mb-1 flex items-center gap-2"><Target className="h-4 w-4 text-emerald-400"/> Budgets Limit</h3>
+            <p style={{ color: '#6B7280', fontSize: 11 }} className="mb-4">Top spending vs limits</p>
+            <div className="space-y-4">
+              {budgets.length === 0 ? (
+                <p className="text-xs" style={{ color: '#6B7280' }}>No budgets set. Create one to get smart alerts.</p>
+              ) : (
+                budgets.slice(0, 3).map(b => {
+                  const spent = data?.categoryData?.[b.category] || 0;
+                  const limit = b.monthlyLimit;
+                  const percent = Math.min(Math.round((spent / limit) * 100), 100);
+                  const isOver = spent > limit;
+                  return (
+                    <div key={b._id}>
+                      <div className="flex justify-between mb-1.5">
+                        <span className="text-xs font-semibold" style={{ color: isOver ? '#EF4444' : '#9CA3AF' }}>{b.category} {isOver && <AlertCircle className="inline h-3 w-3 ml-1"/>}</span>
+                        <span className="text-white text-xs font-bold">{formatCurrency(spent)} / {formatCurrency(limit)}</span>
+                      </div>
+                      <div className="h-1.5 rounded-full" style={{ background: '#252530' }}>
+                        <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${percent}%`, background: isOver ? '#EF4444' : '#22C55E' }} />
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          {/* Loan Summary */}
+          {loans.length > 0 && (
+            <div className="vm-card">
+              <h3 className="text-white font-black text-sm mb-4">Loan Overview</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-xl" style={{ background: '#1E1E2A', border: '1px solid #252530' }}>
+                  <p style={{ color: '#6B7280', fontSize: 10, fontWeight: 700 }}>ACTIVE LOANS</p>
+                  <p className="text-white font-black text-lg">{loans.length}</p>
+                </div>
+                <div className="p-3 rounded-xl" style={{ background: '#1E1E2A', border: '1px solid #252530' }}>
+                  <p style={{ color: '#6B7280', fontSize: 10, fontWeight: 700 }}>TOTAL PAYABLE</p>
+                  <p className="text-white font-black text-lg truncate">{formatCurrency(loans.reduce((acc, l) => acc + l.totalPayable, 0))}</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Insights */}
           <div className="vm-card">

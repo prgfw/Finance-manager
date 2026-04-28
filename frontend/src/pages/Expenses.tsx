@@ -4,6 +4,8 @@ import { useExpenseStore, type Expense } from '../store/expenseStore';
 import { Plus, Trash2, Search, TrendingUp, TrendingDown } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { useCurrencyStore } from '../store/currencyStore';
+import { useBudgetStore } from '../store/budgetStore';
+import toast from 'react-hot-toast';
 
 const EXPENSE_CATEGORIES = ['Food', 'Transport', 'Utilities', 'Entertainment', 'Shopping', 'Health', 'Other'];
 const INCOME_CATEGORIES  = ['Salary', 'Bank Balance', 'Freelance', 'Business', 'Bonus', 'Other'];
@@ -11,6 +13,7 @@ const INCOME_CATEGORIES  = ['Salary', 'Bank Balance', 'Freelance', 'Business', '
 const Expenses = () => {
   const { expenses, setExpenses, addExpense, removeExpense } = useExpenseStore();
   const { selectedCurrency, format: formatCurrency, toBase } = useCurrencyStore();
+  const budgets = useBudgetStore(state => state.budgets);
 
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -46,9 +49,28 @@ const Expenses = () => {
       const amountInUSD = toBase(Number(amount));
       const { data } = await api.post('/expenses', { type, title, amount: amountInUSD, category, date });
       addExpense(data);
+      
+      if (type === 'expense') {
+        const budget = budgets.find(b => b.category === category);
+        if (budget) {
+          const currentSpent = expenses
+            .filter(exp => exp.type === 'expense' && exp.category === category)
+            .reduce((sum, exp) => sum + exp.amount, 0);
+          
+          if (currentSpent + amountInUSD > budget.monthlyLimit) {
+            toast.error(`Alert: You have exceeded your budget limit for ${category}!`, {
+              icon: '⚠️',
+              duration: 5000,
+            });
+          }
+        }
+      }
+
+      toast.success('Transaction added');
       setShowModal(false);
       setTitle(''); setAmount(''); setDate(new Date().toISOString().split('T')[0]);
     } catch (error) {
+      toast.error('Failed to add transaction');
       console.error('Failed to add expense', error);
     }
   };

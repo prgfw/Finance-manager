@@ -5,28 +5,27 @@ import {
   LayoutDashboard,
   Receipt,
   CalendarDays,
+  Target,
+  Banknote,
+  LineChart,
   LogOut,
   TrendingUp,
   ChevronDown
 } from 'lucide-react';
 import { useState } from 'react';
 
-const CURRENCIES = [
-  { code: 'USD', symbol: '$', label: 'USD' },
-  { code: 'INR', symbol: '₹', label: 'INR' },
-  { code: 'EUR', symbol: '€', label: 'EUR' },
-  { code: 'GBP', symbol: '£', label: 'GBP' },
-];
-
 const navItems = [
   { label: 'Dashboard',    icon: LayoutDashboard, path: '/' },
   { label: 'Transactions', icon: Receipt,         path: '/expenses' },
+  { label: 'Budgets',      icon: Target,          path: '/budgets' },
+  { label: 'Loans',        icon: Banknote,        path: '/loans' },
+  { label: 'Investments',  icon: LineChart,       path: '/investments' },
   { label: 'Calendar',     icon: CalendarDays,    path: '/calendar' },
 ];
 
 const Sidebar = () => {
   const { user, logout } = useAuthStore();
-  const { selectedCurrency, setCurrency } = useCurrencyStore();
+  const { selectedCurrency, setCurrency, currencies } = useCurrencyStore();
   const navigate = useNavigate();
   const [showCurrency, setShowCurrency] = useState(false);
 
@@ -81,13 +80,13 @@ const Sidebar = () => {
           </button>
           {showCurrency && (
             <div className="absolute bottom-12 left-0 right-0 bg-[#1A1A25] border border-[#252530] rounded-xl overflow-hidden shadow-xl z-50">
-              {CURRENCIES.map(c => (
+              {currencies.map(c => (
                 <button
                   key={c.code}
                   onClick={() => { setCurrency(c.code); setShowCurrency(false); }}
                   className={`w-full text-left px-3 py-2 text-xs font-semibold transition-colors ${selectedCurrency.code === c.code ? 'text-emerald-400 bg-emerald-500/10' : 'text-gray-300 hover:bg-white/5'}`}
                 >
-                  {c.symbol} {c.label}
+                  {c.symbol} {c.name}
                 </button>
               ))}
             </div>
